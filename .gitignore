@@ -44,3 +44,7 @@ package-lock.json
 
 # db
 *.db
+
+# static files
+/public/*
+!/public/.gitkeep

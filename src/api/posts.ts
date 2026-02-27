@@ -4,13 +4,13 @@ import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 
 const PostRead = z.object({
-  id: z.int(),
-  title: z.string(),
+  id: z.int32().min(0),
+  title: z.string().max(200),
   descr: z.string(),
 });
 
 const PostCreate = z.object({
-  title: z.string(),
+  title: z.string().max(200),
   descr: z.string(),
 });
 

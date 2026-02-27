@@ -8,10 +8,13 @@
     "db-init": "drizzle-kit push"
   },
   "dependencies": {
+    "@elysiajs/html": "^1.4.0",
     "@elysiajs/openapi": "^1.4.14",
+    "@elysiajs/static": "^1.4.7",
     "@libsql/client": "^0.17.0",
+    "@noble/hashes": "^2.0.1",
     "drizzle-orm": "^0.45.1",
-    "elysia": "^1.4.25",
+    "elysia": "^1.4.26",
     "postgres": "^3.4.8",
     "zod": "^4.3.6"
   },
