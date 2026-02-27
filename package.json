@@ -5,7 +5,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "dev": "bun run --watch src/index.ts",
-    "db-init": "drizzle-kit push"
+    "drizzle": "drizzle-kit"
   },
   "dependencies": {
     "@elysiajs/html": "^1.4.0",
