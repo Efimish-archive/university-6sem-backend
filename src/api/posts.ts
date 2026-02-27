@@ -14,6 +14,18 @@ const PostCreate = z.object({
   descr: z.string(),
 });
 
+const Params = z.object({
+  id: z.coerce.number(),
+});
+
+const Message = z.object({
+  message: z.string(),
+});
+
+const Error = z.object({
+  error: z.string(),
+});
+
 export const postsRouter = new Elysia({ prefix: "/posts" })
   .get("", async () => {
     const posts = await db.query.posts.findMany();
@@ -32,35 +44,57 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
     body: PostCreate,
     response: { 201: PostRead },
   })
-  .get("/:id", async ({ query: { id } }) => {
+  .get("/:id", async ({ params: { id }, status }) => {
     const post = await db.query.posts.findFirst({
       where: eq(schema.posts.id, id),
     });
+    if (!post) return status(404, {
+      error: "post with this id not found",
+    });
     return post;
   }, {
-    query: z.object({ id: z.number() }),
-    response: PostRead.optional(),
+    params: Params,
+    response: {
+      200: PostRead,
+      404: Error,
+    },
   })
-  .put("/:id", async ({ query: { id }, body }) => {
+  .put("/:id", async ({ params: { id }, body, status }) => {
     const [post] = await db
       .update(schema.posts)
       .set(body)
       .where(eq(schema.posts.id, id))
       .returning();
 
+    if (!post) return status(404, {
+      error: "post with this id not found",
+    });
+
     return post;
   }, {
-    query: z.object({ id: z.number() }),
+    params: Params,
     body: PostCreate,
-    response: PostRead.optional(),
+    response: {
+      200: PostRead,
+      404: Error,
+    },
   })
-  .delete("/:id", async ({ query: { id }, status }) => {
-    await db
+  .delete("/:id", async ({ params: { id }, status }) => {
+    const deleted = await db
       .delete(schema.posts)
       .where(eq(schema.posts.id, id));
 
-    return status(204, {});
+    if (deleted.rowsAffected === 0) return status(404, {
+      error: "post with this id not found",
+    });
+
+    return status(204, {
+      message: "success",
+    });
   }, {
-    query: z.object({ id: z.number() }),
-    response: { 204: z.object() },
+    params: Params,
+    response: {
+      204: Message,
+      404: Error,
+    },
   })

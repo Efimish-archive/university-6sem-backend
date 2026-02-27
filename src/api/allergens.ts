@@ -12,6 +12,18 @@ const AllergenCreate = z.object({
   name: z.string(),
 });
 
+const Params = z.object({
+  id: z.coerce.number(),
+});
+
+const Message = z.object({
+  message: z.string(),
+});
+
+const Error = z.object({
+  error: z.string(),
+});
+
 export const allergensRouter = new Elysia({ prefix: "/allergens" })
   .get("", async () => {
     const allergens = await db.query.allergens.findMany();
@@ -30,35 +42,57 @@ export const allergensRouter = new Elysia({ prefix: "/allergens" })
     body: AllergenCreate,
     response: { 201: AllergenRead },
   })
-  .get("/:id", async ({ query: { id } }) => {
+  .get("/:id", async ({ params: { id }, status }) => {
     const allergen = await db.query.allergens.findFirst({
       where: eq(schema.allergens.id, id),
     });
+    if (!allergen) return status(404, {
+      error: "allergen with this id not found",
+    });
     return allergen;
   }, {
-    query: z.object({ id: z.number() }),
-    response: AllergenRead.optional(),
+    params: Params,
+    response: {
+      200: AllergenRead,
+      404: Error,
+    },
   })
-  .put("/:id", async ({ query: { id }, body }) => {
+  .put("/:id", async ({ params: { id }, body, status }) => {
     const [allergen] = await db
       .update(schema.allergens)
       .set(body)
       .where(eq(schema.allergens.id, id))
       .returning();
 
+    if (!allergen) return status(404, {
+      error: "allergen with this id not found",
+    });
+
     return allergen;
   }, {
-    query: z.object({ id: z.number() }),
+    params: Params,
     body: AllergenCreate,
-    response: AllergenRead.optional(),
+    response: {
+      200: AllergenRead,
+      404: Error,
+    },
   })
-  .delete("/:id", async ({ query: { id }, status }) => {
-    await db
+  .delete("/:id", async ({ params: { id }, status }) => {
+    const deleted = await db
       .delete(schema.allergens)
       .where(eq(schema.allergens.id, id));
 
-    return status(204, {});
+    if (deleted.rowsAffected === 0) return status(404, {
+      error: "allergen with this id not found",
+    });
+
+    return status(204, {
+      message: "success",
+    });
   }, {
-    query: z.object({ id: z.number() }),
-    response: { 204: z.object() },
+    params: Params,
+    response: {
+      204: Message,
+      404: Error,
+    },
   })
