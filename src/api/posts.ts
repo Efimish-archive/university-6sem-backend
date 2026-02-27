@@ -14,7 +14,7 @@ const PostCreate = z.object({
   descr: z.string(),
 });
 
-export const router = new Elysia({ prefix: "/posts" })
+export const postsRouter = new Elysia({ prefix: "/posts" })
   .get("", async () => {
     const posts = await db.query.posts.findMany();
     return posts;
@@ -57,8 +57,7 @@ export const router = new Elysia({ prefix: "/posts" })
   .delete("/:id", async ({ query: { id }, status }) => {
     await db
       .delete(schema.posts)
-      .where(eq(schema.posts.id, id))
-      .returning();
+      .where(eq(schema.posts.id, id));
 
     return status(204, {});
   }, {

@@ -3,9 +3,13 @@ import { openapi } from "@elysiajs/openapi";
 import { staticPlugin } from "@elysiajs/static";
 import { env } from "@/env";
 import { logging } from "@/logging";
-import { router as testRouter } from "@/api/test";
-import { router as postsRouter } from "@/api/posts";
-import { router as recipesRouter } from "@/api/recipes";
+
+import { testRouter } from "@/api/test";
+import { postsRouter } from "@/api/posts";
+import { recipesRouter } from "@/api/recipes";
+import { cuisinesRouter } from "@/api/cuisines";
+import { allergensRouter } from "@/api/allergens";
+import { ingredientsRouter } from "@/api/ingredients";
 
 const app = new Elysia()
   .use(
@@ -25,6 +29,9 @@ const app = new Elysia()
   .use(testRouter)
   .use(postsRouter)
   .use(recipesRouter)
+  .use(cuisinesRouter)
+  .use(allergensRouter)
+  .use(ingredientsRouter)
   .listen(env.PORT);
 
 console.log(`🦊 Elysia is running at ${env.HOST}`);

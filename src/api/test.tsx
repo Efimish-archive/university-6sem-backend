@@ -38,7 +38,7 @@ const ImageSchema = z.object({
     .refine((file) => fileType(file, ["image/png", "image/jpeg", "image/webp"])),
 });
 
-export const router = new Elysia({ prefix: "/test" })
+export const testRouter = new Elysia({ prefix: "/test" })
   .post("/items", ({ body }) => {
     return body;
   }, {
