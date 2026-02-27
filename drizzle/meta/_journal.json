@@ -8,6 +8,13 @@
       "when": 1772206946854,
       "tag": "0000_smart_jack_power",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1772217398937,
+      "tag": "0001_chunky_beyonder",
+      "breakpoints": true
     }
   ]
 }
