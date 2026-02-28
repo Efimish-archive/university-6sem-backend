@@ -10,6 +10,7 @@ import { recipesRouter } from "@/api/recipes";
 import { cuisinesRouter } from "@/api/cuisines";
 import { allergensRouter } from "@/api/allergens";
 import { ingredientsRouter } from "@/api/ingredients";
+import { usersRouter } from "@/api/users";
 
 const app = new Elysia()
   .use(
@@ -20,6 +21,15 @@ const app = new Elysia()
         info: {
           title: "Бэкенд разработка",
           version: "0.0.1",
+        },
+        components: {
+          securitySchemes: {
+            bearer: {
+              type: "http",
+              scheme: "bearer",
+              bearerFormat: "JWT",
+            },
+          },
         },
       },
     })
@@ -32,6 +42,7 @@ const app = new Elysia()
   .use(cuisinesRouter)
   .use(allergensRouter)
   .use(ingredientsRouter)
+  .use(usersRouter)
   .listen(env.PORT);
 
 console.log(`🦊 Elysia is running at ${env.HOST}`);
