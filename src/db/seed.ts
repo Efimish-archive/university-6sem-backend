@@ -1,9 +1,10 @@
 import { faker, fakerRU } from "@faker-js/faker";
 import { db, schema } from ".";
+import argon2 from "argon2";
 
-const createFakeUser = (): typeof schema.users.$inferInsert => ({
+const createFakeUser = async (): Promise<typeof schema.users.$inferInsert> => ({
   login: faker.internet.username(),
-  passwordHash: "1", // TODO
+  passwordHash: await argon2.hash("1"),
   firstName: fakerRU.person.firstName(),
   lastName: fakerRU.person.lastName()
 });
@@ -26,6 +27,14 @@ const createAmount = <T>(createFn: () => T, amount: number) => {
   const result: T[] = [];
   while (result.length < amount) {
     result.push(createFn());
+  }
+  return result;
+}
+
+const createAmountAsync = async <T>(createFn: () => Promise<T>, amount: number) => {
+  const result: T[] = [];
+  while (result.length < amount) {
+    result.push(await createFn());
   }
   return result;
 }
@@ -62,7 +71,7 @@ const ingredients = await db.insert(schema.ingredients).values(
 console.log("seeded ingredients");
 
 const users = await db.insert(schema.users).values(
-  createAmount(createFakeUser, 100)
+  await createAmountAsync(createFakeUser, 100)
 ).returning();
 console.log("seeded users");
 

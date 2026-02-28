@@ -8,11 +8,14 @@
     "drizzle": "drizzle-kit"
   },
   "dependencies": {
+    "@elysiajs/bearer": "^1.4.3",
     "@elysiajs/html": "^1.4.0",
+    "@elysiajs/jwt": "^1.4.0",
     "@elysiajs/openapi": "^1.4.14",
     "@elysiajs/static": "^1.4.7",
     "@libsql/client": "^0.17.0",
     "@noble/hashes": "^2.0.1",
+    "argon2": "^0.44.0",
     "drizzle-orm": "^0.45.1",
     "elysia": "^1.4.26",
     "postgres": "^3.4.8",
