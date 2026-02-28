@@ -95,18 +95,18 @@ const RecipeRead = z.object({
   cuisine: z.object({
     id: Id,
     name: z.string(),
-  }).optional(),
+  }),
   allergens: z.object({
     id: Id,
     name: z.string(),
-  }).array().optional(),
+  }).array(),
   ingredients: z.object({
     id: Id,
     quantity: z.int32().min(1),
     measurement: z.enum(schema.MeasurementEnum),
     name: z.string(),
-  }).array().optional(),
-});
+  }).array(),
+}).partial();
 
 const baseQuery = {
   with: {
