@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { z } from "zod";
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { and, eq, like, exists, inArray, desc, asc, sql } from "drizzle-orm";
 
 const Id = z.int32().min(0);
 
@@ -53,6 +53,18 @@ const Error = z.object({
   error: z.string(),
 });
 
+const Pagination = z.object({
+  page: z.coerce.number().min(1).default(1),
+  size: z.coerce.number().min(1).max(10).default(10),
+});
+
+const Filters = z.object({
+  name__like: z.string(),
+  ingredientId: z.coerce.number().array()
+    .or(z.coerce.number().transform(n => [n])),
+  sort: z.string(),
+}).partial();
+
 export const baseQuery = {
   with: {
     cuisine: true,
@@ -85,11 +97,86 @@ export function serializeRecipe(recipe: NonNullable<Awaited<ReturnType<typeof db
 }
 
 export const recipesRouter = new Elysia({ prefix: "/recipes" })
-  .get("", async () => {
-    const recipes = await db.query.recipes.findMany(baseQuery);
+  .get("", async ({ query, status }) => {
+    const filters = [];
+
+    if (query.name__like) filters.push(
+      like(schema.recipes.title, `%${query.name__like}%`)
+    );
+
+    if (query.ingredientId?.length) {
+      const ids = query.ingredientId;
+
+      const subquery = db
+        .select({
+          recipeId: schema.recipeIngredients.recipeId,
+        })
+        .from(schema.recipeIngredients)
+        .where(
+          inArray(schema.recipeIngredients.ingredientId, ids)
+        )
+        .groupBy(schema.recipeIngredients.recipeId)
+        .having(
+          sql`count(distinct ${schema.recipeIngredients.ingredientId}) = ${ids.length}`
+        );
+
+      filters.push(
+        inArray(schema.recipes.id, subquery)
+      );
+
+      // ----- ВАРИАНТ 2: РЕЦЕПТЫ С ЛЮБЫМ ИЗ ИНГРЕДИЕНТОВ -----
+      // filters.push(
+      //   exists(
+      //     db.select()
+      //       .from(schema.recipeIngredients)
+      //       .where(
+      //         and(
+      //           eq(
+      //             schema.recipeIngredients.recipeId,
+      //             schema.recipes.id
+      //           ),
+      //           inArray(
+      //             schema.recipeIngredients.ingredientId,
+      //             query.ingredientId
+      //           ),
+      //         )
+      //       )
+      //   )
+      // );
+    }
+
+    let orderBy;
+
+    if (query.sort) {
+      const isDesc = query.sort.startsWith("-");
+      const field = isDesc ? query.sort.slice(1) : query.sort;
+
+      type Column = keyof typeof schema.recipes.$inferSelect;
+
+      if (field in schema.recipes) {
+        orderBy = isDesc
+          ? desc(schema.recipes[field as Column])
+          : asc(schema.recipes[field as Column]);
+      } else return status(400, {
+        error: "sort not found",
+      });
+    }
+
+    const recipes = await db.query.recipes.findMany({
+      ...baseQuery,
+      offset: ((query.page - 1) * query.size),
+      limit: query.size,
+      where: filters.length ? and(...filters) : undefined,
+      orderBy,
+    });
+
     return recipes.map(serializeRecipe);
   }, {
-    response: RecipeRead.array(),
+    query: Pagination.extend({ ...Filters.shape }),
+    response: {
+      200: RecipeRead.array(),
+      400: Error,
+    },
   })
   .post("", async ({ body, status }) => {
     return await db.transaction(async (tx) => {
