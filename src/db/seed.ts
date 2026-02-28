@@ -1,12 +1,20 @@
 import { faker, fakerRU } from "@faker-js/faker";
 import { db, schema } from ".";
 
-const createFakeRecipe = (cuisineId: number): typeof schema.recipes.$inferInsert => ({
+const createFakeUser = (): typeof schema.users.$inferInsert => ({
+  login: faker.internet.username(),
+  passwordHash: "1", // TODO
+  firstName: fakerRU.person.firstName(),
+  lastName: fakerRU.person.lastName()
+});
+
+const createFakeRecipe = (cuisineId: number, authorId: number): typeof schema.recipes.$inferInsert => ({
   title: fakerRU.food.dish(),
   description: fakerRU.food.adjective(),
   cookingTime: faker.number.int({ min: 1, max: 100 }),
   difficulty: faker.number.int({ min: 1, max: 5 }),
   cuisineId,
+  authorId,
 });
 
 const createFakePost = (): typeof schema.posts.$inferInsert => ({
@@ -25,6 +33,7 @@ const createAmount = <T>(createFn: () => T, amount: number) => {
 await db.delete(schema.recipeAllergens);
 await db.delete(schema.recipeIngredients);
 await db.delete(schema.recipes);
+await db.delete(schema.users);
 await db.delete(schema.cuisines);
 await db.delete(schema.allergens);
 await db.delete(schema.ingredients);
@@ -52,9 +61,17 @@ const ingredients = await db.insert(schema.ingredients).values(
 ).returning();
 console.log("seeded ingredients");
 
+const users = await db.insert(schema.users).values(
+  createAmount(createFakeUser, 100)
+).returning();
+console.log("seeded users");
+
 const recipes = await db.insert(schema.recipes).values(
   cuisines.flatMap((cuisine) =>
-    createAmount(() => createFakeRecipe(cuisine.id), 3)
+    createAmount(() => createFakeRecipe(
+      cuisine.id,
+      faker.helpers.arrayElement(users).id,
+    ), 3)
   )
 ).returning();
 console.log("seeded recipes");

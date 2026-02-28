@@ -15,6 +15,13 @@
       "when": 1772217398937,
       "tag": "0001_chunky_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772280388988,
+      "tag": "0002_grey_morgan_stark",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,18 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
+export const users = sqliteTable("users", {
+  id: int().primaryKey(),
+  login: text().unique().notNull(),
+  passwordHash: text().notNull(),
+  firstName: text().notNull(),
+  lastName: text().notNull(),
+});
+
+export const usersRelations = relations(users, ({ many }) => ({
+  recipes: many(recipes),
+}));
+
 export const posts = sqliteTable("posts", {
   id: int().primaryKey(),
   title: text({ length: 200 }).notNull(),
@@ -49,12 +61,17 @@ export const recipes = sqliteTable("recipes", {
   cookingTime: int().notNull(),
   difficulty: int().default(1).notNull(),
   cuisineId: int().references(() => cuisines.id).notNull(),
+  authorId: int().references(() => users.id).notNull(),
 });
 
 export const recipesRelations = relations(recipes, ({ one, many }) => ({
   cuisine: one(cuisines, {
     fields: [recipes.cuisineId],
     references: [cuisines.id],
+  }),
+  author: one(users, {
+    fields: [recipes.authorId],
+    references: [users.id],
   }),
   recipeAllergens: many(recipeAllergens),
   recipeIngredients: many(recipeIngredients),
