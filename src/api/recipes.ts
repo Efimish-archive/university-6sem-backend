@@ -1,11 +1,11 @@
 import { Elysia } from "elysia";
 import { z } from "zod";
 import { db, schema } from "@/db";
-import { and, eq, like, exists, inArray, desc, asc, sql } from "drizzle-orm";
+import { and, eq, like, inArray, desc, asc, sql } from "drizzle-orm";
 
 const Id = z.int32().min(0);
 
-export const RecipeRead = z.object({
+const RecipeRead = z.object({
   id: Id,
   title: z.string().max(200),
   description: z.string(),
@@ -65,7 +65,7 @@ const Filters = z.object({
   sort: z.string(),
 }).partial();
 
-export const baseQuery = {
+const baseQuery = {
   with: {
     cuisine: true,
     recipeAllergens: {
@@ -81,7 +81,7 @@ export const baseQuery = {
   },
 } satisfies Parameters<typeof db.query.recipes.findFirst>[0];
 
-export function serializeRecipe(recipe: NonNullable<Awaited<ReturnType<typeof db.query.recipes.findFirst<typeof baseQuery>>>>): z.infer<typeof RecipeRead> {
+function serializeRecipe(recipe: NonNullable<Awaited<ReturnType<typeof db.query.recipes.findFirst<typeof baseQuery>>>>): z.infer<typeof RecipeRead> {
   const { cuisineId, recipeAllergens, recipeIngredients, ...rest } = recipe;
 
   return {
