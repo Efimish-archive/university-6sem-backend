@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { and, eq, like, inArray, desc, asc, exists } from "drizzle-orm";
 import { context } from "@/context";
+import { generateRecipe } from "@/broker";
 
 const Id = z.int32().min(0);
 
@@ -331,6 +332,20 @@ export const recipesRouter = new Elysia({ prefix: "/recipes" })
       204: Message,
       403: Error,
       404: Error,
+    },
+    auth: true,
+  })
+  .post("/generate", async ({ body: { prompt }, auth: { userId } }) => {
+    generateRecipe({ prompt, userId });
+    return { status: "Генерация началась" };
+  }, {
+    body: z.object({
+      prompt: z.string().min(2),
+    }),
+    response: {
+      200: z.object({
+        status: z.string(),
+      }),
     },
     auth: true,
   })

@@ -4,8 +4,8 @@ export const logging = () => new Elysia({
   name: "elysia-logging-middleware",
 }).onAfterResponse(
   { as: "global" },
-  ({ request: { method, url }, set: { status }, responseValue }) => {
+  ({ request: { method, url }, set: { status } }) => {
     const time = new Date().toLocaleTimeString("ru");
-    console.log(`[${time}] ${method} ${url} -> ${status}`, responseValue);
+    console.log(`[${time}] ${method} ${url} -> ${status}`);
   }
 );
